@@ -18,7 +18,10 @@ wallet_service = WalletService(shared_ledger)
     response_model=WalletBalanceResponse,
 )
 def get_wallet_balance(user_id: str):
-    balances = wallet_service.get_balances()
+
+    balances = wallet_service.get_balances(
+        user_id=user_id,
+    )
 
     return WalletBalanceResponse(
         user_id=user_id,

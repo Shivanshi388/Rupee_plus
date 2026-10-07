@@ -9,7 +9,6 @@ from backend.app.services.transaction_allocation import (
     TransactionAllocationService,
 )
 
-
 router = APIRouter(
     prefix="/transactions",
     tags=["Transactions"],
@@ -25,19 +24,21 @@ allocation_service = TransactionAllocationService(
     response_model=TransactionResponse,
 )
 def process_transaction(request: TransactionRequest):
+
     result = allocation_service.process_transaction(
         transaction_id=request.transaction_id,
         transaction_amount=request.amount,
         insurance_required=request.insurance_required,
+        user_id=request.user_id,
     )
 
     if result.coverage_active:
         message = (
-            "₹1 round-up processed. "
+            "Rs.1 round-up processed. "
             "Insurance requirement reached; extra savings are accumulating."
         )
     else:
-        message = "₹1 round-up processed successfully."
+        message = "Rs.1 round-up processed successfully."
 
     return TransactionResponse(
         transaction_id=result.transaction_id,

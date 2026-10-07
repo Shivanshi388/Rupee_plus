@@ -60,3 +60,46 @@ def test_wallet_reflects_multiple_transactions():
     assert data["insurance_balance"] == 2.0
     assert data["savings_balance"] == 1.0
     assert data["total_balance"] == 3.0
+from fastapi.testclient import TestClient
+
+from backend.app.main import app
+from backend.app.services.shared_store import shared_ledger
+
+
+client = TestClient(app)
+
+
+def test_users_cannot_see_each_others_wallet_balance():
+    shared_ledger.entries.clear()
+
+    response_1 = client.post(
+        "/transactions/process",
+        json={
+            "transaction_id": "ISO001",
+            "user_id": "USR_A",
+            "amount": 100,
+            "insurance_required": 2,
+        },
+    )
+
+    response_2 = client.post(
+        "/transactions/process",
+        json={
+            "transaction_id": "ISO002",
+            "user_id": "USR_B",
+            "amount": 100,
+            "insurance_required": 2,
+        },
+    )
+
+    assert response_1.status_code == 200
+    assert response_2.status_code == 200
+
+    wallet_a = client.get("/wallet/USR_A").json()
+    wallet_b = client.get("/wallet/USR_B").json()
+
+    assert wallet_a["insurance_balance"] == 1
+    assert wallet_a["savings_balance"] == 0
+
+    assert wallet_b["insurance_balance"] == 1
+    assert wallet_b["savings_balance"] == 0

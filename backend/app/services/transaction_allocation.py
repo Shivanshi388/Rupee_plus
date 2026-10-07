@@ -17,15 +17,6 @@ class AllocationResult:
 
 
 class TransactionAllocationService:
-    """
-    Processes Rupee+ UPI round-ups cumulatively.
-
-    Each eligible transaction contributes exactly ₹1.
-
-    The collected round-ups first fill the insurance requirement.
-    Once the insurance requirement is satisfied, additional
-    round-ups are allocated to the savings wallet.
-    """
 
     def __init__(self, ledger: LedgerService | None = None):
         self.roundup_engine = RoundUpEngine()
@@ -36,7 +27,11 @@ class TransactionAllocationService:
         transaction_id: str,
         transaction_amount: float,
         insurance_required: float,
+        user_id: str = "default",
     ) -> AllocationResult:
+
+        if not user_id:
+            raise ValueError("User ID is required.")
 
         if insurance_required <= 0:
             raise ValueError(
@@ -45,7 +40,11 @@ class TransactionAllocationService:
 
         roundup = self.roundup_engine.calculate(transaction_amount)
 
-        current_insurance = self.ledger.get_wallet_balance("insurance")
+        current_insurance = self.ledger.get_wallet_balance(
+            "insurance",
+            user_id=user_id,
+        )
+
         remaining_insurance = max(
             0.0,
             insurance_required - current_insurance,
@@ -56,7 +55,10 @@ class TransactionAllocationService:
             remaining_insurance,
         )
 
-        savings_amount = roundup.roundup_amount - insurance_amount
+        savings_amount = round(
+            roundup.roundup_amount - insurance_amount,
+            2,
+        )
 
         if insurance_amount > 0:
             self.ledger.record(
@@ -64,7 +66,8 @@ class TransactionAllocationService:
                 wallet_type="insurance",
                 amount=insurance_amount,
                 entry_type="credit",
-                description="₹1 UPI round-up allocated to insurance wallet",
+                description="Insurance allocation",
+                user_id=user_id,
             )
 
         if savings_amount > 0:
@@ -73,18 +76,38 @@ class TransactionAllocationService:
                 wallet_type="savings",
                 amount=savings_amount,
                 entry_type="credit",
-                description="₹1 UPI round-up allocated to savings wallet",
+                description="Savings allocation",
+                user_id=user_id,
             )
 
-        insurance_balance = self.ledger.get_wallet_balance("insurance")
-        savings_balance = self.ledger.get_wallet_balance("savings")
+        insurance_balance = self.ledger.get_wallet_balance(
+            "insurance",
+            user_id=user_id,
+        )
+
+        savings_balance = self.ledger.get_wallet_balance(
+            "savings",
+            user_id=user_id,
+        )
 
         return AllocationResult(
             transaction_id=transaction_id,
-            transaction_amount=roundup.transaction_amount,
-            roundup_amount=roundup.roundup_amount,
-            insurance_amount=round(insurance_amount, 2),
-            savings_amount=round(savings_amount, 2),
+            transaction_amount=round(
+                transaction_amount,
+                2,
+            ),
+            roundup_amount=round(
+                roundup.roundup_amount,
+                2,
+            ),
+            insurance_amount=round(
+                insurance_amount,
+                2,
+            ),
+            savings_amount=round(
+                savings_amount,
+                2,
+            ),
             insurance_balance=insurance_balance,
             savings_balance=savings_balance,
             coverage_active=insurance_balance >= insurance_required,
