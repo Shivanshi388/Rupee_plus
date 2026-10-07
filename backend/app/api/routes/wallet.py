@@ -1,7 +1,7 @@
-from fastapi import APIRouter
+﻿from fastapi import APIRouter
 
 from backend.app.schemas.wallet import WalletBalanceResponse
-from backend.app.services.ledger_service import LedgerService
+from backend.app.services.shared_store import shared_ledger
 from backend.app.services.wallet_service import WalletService
 
 
@@ -10,11 +10,13 @@ router = APIRouter(
     tags=["Wallet"],
 )
 
-ledger = LedgerService()
-wallet_service = WalletService(ledger)
+wallet_service = WalletService(shared_ledger)
 
 
-@router.get("/{user_id}", response_model=WalletBalanceResponse)
+@router.get(
+    "/{user_id}",
+    response_model=WalletBalanceResponse,
+)
 def get_wallet_balance(user_id: str):
     balances = wallet_service.get_balances()
 

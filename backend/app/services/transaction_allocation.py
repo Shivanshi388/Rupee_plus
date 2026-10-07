@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 
 from backend.app.services.ledger_service import LedgerService
 from backend.app.services.roundup_engine import RoundUpEngine
@@ -20,16 +20,16 @@ class TransactionAllocationService:
     """
     Processes Rupee+ UPI round-ups cumulatively.
 
-    Each eligible transaction contributes exactly ?1.
+    Each eligible transaction contributes exactly ₹1.
 
     The collected round-ups first fill the insurance requirement.
     Once the insurance requirement is satisfied, additional
     round-ups are allocated to the savings wallet.
     """
 
-    def __init__(self):
+    def __init__(self, ledger: LedgerService | None = None):
         self.roundup_engine = RoundUpEngine()
-        self.ledger = LedgerService()
+        self.ledger = ledger if ledger is not None else LedgerService()
 
     def process_transaction(
         self,
@@ -46,7 +46,6 @@ class TransactionAllocationService:
         roundup = self.roundup_engine.calculate(transaction_amount)
 
         current_insurance = self.ledger.get_wallet_balance("insurance")
-
         remaining_insurance = max(
             0.0,
             insurance_required - current_insurance,
@@ -57,9 +56,7 @@ class TransactionAllocationService:
             remaining_insurance,
         )
 
-        savings_amount = (
-            roundup.roundup_amount - insurance_amount
-        )
+        savings_amount = roundup.roundup_amount - insurance_amount
 
         if insurance_amount > 0:
             self.ledger.record(
@@ -67,7 +64,7 @@ class TransactionAllocationService:
                 wallet_type="insurance",
                 amount=insurance_amount,
                 entry_type="credit",
-                description="?1 UPI round-up allocated to insurance wallet",
+                description="₹1 UPI round-up allocated to insurance wallet",
             )
 
         if savings_amount > 0:
@@ -76,7 +73,7 @@ class TransactionAllocationService:
                 wallet_type="savings",
                 amount=savings_amount,
                 entry_type="credit",
-                description="?1 UPI round-up allocated to savings wallet",
+                description="₹1 UPI round-up allocated to savings wallet",
             )
 
         insurance_balance = self.ledger.get_wallet_balance("insurance")
