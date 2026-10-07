@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
+﻿from pydantic import BaseModel, Field
 
 
 class TransactionRequest(BaseModel):
     transaction_id: str = Field(min_length=1)
     user_id: str = Field(min_length=1)
     amount: float = Field(gt=0)
-    insurance_required: float = Field(gt=0)
+    insurance_required: float | None = Field(default=None, gt=0)
 
 
 class TransactionResponse(BaseModel):
@@ -17,5 +17,6 @@ class TransactionResponse(BaseModel):
     savings_amount: float
     insurance_balance: float
     savings_balance: float
+    insurance_required: float
     coverage_active: bool
     message: str
