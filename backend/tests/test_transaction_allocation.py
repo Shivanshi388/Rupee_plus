@@ -3,54 +3,81 @@ from backend.app.services.transaction_allocation import (
 )
 
 
-def test_roundup_is_allocated_to_insurance_first():
+def test_roundups_fill_insurance_before_savings():
     service = TransactionAllocationService()
 
-    result = service.process_transaction(
-        transaction_id="UPI001",
-        transaction_amount=48.20,
-        insurance_required=25,
+    result_1 = service.process_transaction(
+        transaction_id="TXN001",
+        transaction_amount=100.0,
+        insurance_required=3.0,
     )
 
-    assert result.transaction_amount == 48.20
-    assert result.roundup_amount == 1
-    assert result.insurance_amount == 1
-    assert result.savings_amount == 0
+    result_2 = service.process_transaction(
+        transaction_id="TXN002",
+        transaction_amount=200.0,
+        insurance_required=3.0,
+    )
+
+    result_3 = service.process_transaction(
+        transaction_id="TXN003",
+        transaction_amount=300.0,
+        insurance_required=3.0,
+    )
+
+    assert result_1.insurance_amount == 1.0
+    assert result_1.savings_amount == 0.0
+
+    assert result_2.insurance_amount == 1.0
+    assert result_2.savings_amount == 0.0
+
+    assert result_3.insurance_amount == 1.0
+    assert result_3.savings_amount == 0.0
+
+    assert result_3.insurance_balance == 3.0
+    assert result_3.savings_balance == 0.0
+    assert result_3.coverage_active is True
 
 
-def test_savings_receives_amount_after_insurance_requirement():
+def test_extra_roundups_go_to_savings_after_insurance_is_full():
     service = TransactionAllocationService()
 
+    for index in range(3):
+        service.process_transaction(
+            transaction_id=f"TXN00{index + 1}",
+            transaction_amount=100.0,
+            insurance_required=3.0,
+        )
+
     result = service.process_transaction(
-        transaction_id="UPI002",
-        transaction_amount=100,
-        insurance_required=0.25,
+        transaction_id="TXN004",
+        transaction_amount=100.0,
+        insurance_required=3.0,
     )
 
-    assert result.roundup_amount == 1
-    assert result.insurance_amount == 0.25
-    assert result.savings_amount == 0.75
+    assert result.insurance_amount == 0.0
+    assert result.savings_amount == 1.0
+    assert result.insurance_balance == 3.0
+    assert result.savings_balance == 1.0
+    assert result.coverage_active is True
 
 
-def test_ledger_records_allocation():
+def test_partial_insurance_requirement_splits_roundup():
     service = TransactionAllocationService()
 
     service.process_transaction(
-        transaction_id="UPI003",
-        transaction_amount=250,
-        insurance_required=1,
+        transaction_id="TXN001",
+        transaction_amount=100.0,
+        insurance_required=0.5,
     )
 
-    assert service.ledger.get_wallet_balance("insurance") == 1
-    assert service.ledger.get_wallet_balance("savings") == 0
+    result = service.process_transaction(
+        transaction_id="TXN002",
+        transaction_amount=100.0,
+        insurance_required=0.5,
+    )
 
-
-def test_multiple_transactions_accumulate_wallet_balances():
-    service = TransactionAllocationService()
-
-    service.process_transaction("UPI004", 50, 0)
-    service.process_transaction("UPI005", 75, 0)
-    service.process_transaction("UPI006", 100, 0)
-
-    assert service.ledger.get_wallet_balance("insurance") == 0
-    assert service.ledger.get_wallet_balance("savings") == 3
+    assert result.insurance_amount == 0.0
+    assert result.savings_amount == 1.0
+    assert result.insurance_balance == 0.5
+    assert result.savings_balance == 1.5
+    assert result.coverage_active is True

@@ -27,3 +27,6 @@ def test_process_transaction():
     assert data["roundup_amount"] == 1.0
     assert data["insurance_amount"] == 0.50
     assert data["savings_amount"] == 0.50
+    assert data["insurance_balance"] == 0.50
+    assert data["savings_balance"] == 0.50
+    assert data["coverage_active"] is True

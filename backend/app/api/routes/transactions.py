@@ -25,6 +25,14 @@ def process_transaction(request: TransactionRequest):
         insurance_required=request.insurance_required,
     )
 
+    if result.coverage_active:
+        message = (
+            "?1 round-up processed. "
+            "Insurance requirement reached; extra savings are accumulating."
+        )
+    else:
+        message = "?1 round-up processed successfully."
+
     return TransactionResponse(
         transaction_id=result.transaction_id,
         user_id=request.user_id,
@@ -32,5 +40,8 @@ def process_transaction(request: TransactionRequest):
         roundup_amount=result.roundup_amount,
         insurance_amount=result.insurance_amount,
         savings_amount=result.savings_amount,
-        message="?1 round-up processed successfully.",
+        insurance_balance=result.insurance_balance,
+        savings_balance=result.savings_balance,
+        coverage_active=result.coverage_active,
+        message=message,
     )

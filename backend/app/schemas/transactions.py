@@ -5,7 +5,7 @@ class TransactionRequest(BaseModel):
     transaction_id: str = Field(min_length=1)
     user_id: str = Field(min_length=1)
     amount: float = Field(gt=0)
-    insurance_required: float = Field(ge=0)
+    insurance_required: float = Field(gt=0)
 
 
 class TransactionResponse(BaseModel):
@@ -15,4 +15,7 @@ class TransactionResponse(BaseModel):
     roundup_amount: float
     insurance_amount: float
     savings_amount: float
+    insurance_balance: float
+    savings_balance: float
+    coverage_active: bool
     message: str
