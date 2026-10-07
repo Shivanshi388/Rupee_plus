@@ -1,5 +1,6 @@
 ﻿from fastapi import FastAPI
 
+from backend.app.api.routes.claims import router as claims_router
 from backend.app.api.routes.cover import router as cover_router
 from backend.app.api.routes.onboarding import router as onboarding_router
 from backend.app.api.routes.premium import router as premium_router
@@ -18,6 +19,7 @@ app.include_router(onboarding_router)
 app.include_router(transactions_router)
 app.include_router(wallet_router)
 app.include_router(cover_router)
+app.include_router(claims_router)
 
 
 @app.get("/")
