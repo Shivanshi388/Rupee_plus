@@ -173,3 +173,72 @@ def test_ml_premium_eventually_activates_coverage():
 
     assert wallet["insurance_balance"] >= required_premium
     assert wallet["total_balance"] >= required_premium
+
+def test_user_coverage_endpoint_reads_profile_and_wallet():
+    from backend.app.services.profile_store import profiles
+    from backend.app.services.shared_store import shared_ledger
+
+    shared_ledger.entries.clear()
+    profiles.clear()
+
+    onboarding_response = client.post(
+        "/onboarding/profile",
+        json={
+            "user_id": "COVER_API_001",
+            "name": "Coverage API Demo",
+            "occupation": "Delivery Partner",
+            "city": "Agra",
+            "monthly_income": 18000,
+            "income_stability": 0.70,
+            "work_hours_per_day": 9,
+            "city_risk": 0.40,
+            "occupation_risk": 0.60,
+            "previous_claims": 0,
+        },
+    )
+
+    assert onboarding_response.status_code == 200
+
+    profile = onboarding_response.json()
+
+    transaction_response = client.post(
+        "/transactions/process",
+        json={
+            "transaction_id": "COVER_API_TXN",
+            "user_id": "COVER_API_001",
+            "amount": 500,
+        },
+    )
+
+    assert transaction_response.status_code == 200
+
+    coverage_response = client.get(
+        "/cover/COVER_API_001"
+    )
+
+    assert coverage_response.status_code == 200
+
+    coverage = coverage_response.json()
+
+    assert coverage["user_id"] == "COVER_API_001"
+    assert coverage["required_premium"] == profile["monthly_premium"]
+    assert coverage["monthly_premium"] == profile["monthly_premium"]
+    assert coverage["insurance_balance"] == 1.0
+    assert coverage["savings_balance"] == 0.0
+    assert coverage["risk_level"] == profile["risk_level"]
+    assert coverage["coverage_active"] is False
+    assert coverage["remaining_amount"] > 0
+
+
+def test_user_coverage_requires_onboarding():
+    from backend.app.services.profile_store import profiles
+    from backend.app.services.shared_store import shared_ledger
+
+    shared_ledger.entries.clear()
+    profiles.clear()
+
+    response = client.get(
+        "/cover/UNKNOWN_COVER_USER"
+    )
+
+    assert response.status_code == 404

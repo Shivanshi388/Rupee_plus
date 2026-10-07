@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+﻿from pydantic import BaseModel, Field
 
 
 class CoverageRequest(BaseModel):
@@ -13,4 +13,16 @@ class CoverageResponse(BaseModel):
     insurance_balance: float
     coverage_active: bool
     remaining_amount: float
+    message: str
+
+
+class UserCoverageResponse(BaseModel):
+    user_id: str
+    required_premium: float
+    insurance_balance: float
+    savings_balance: float
+    coverage_active: bool
+    remaining_amount: float
+    risk_level: str
+    monthly_premium: float
     message: str
