@@ -1,11 +1,42 @@
 import { useState } from "react";
 
-function Dashboard() {
-  const [active, setActive] = useState("overview");
+function Onboarding({ onComplete }) {
+  const [step, setStep] = useState(1);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    income: "",
+    goal: "",
+    protection: "",
+  });
+
+  const updateForm = (field, value) => {
+    setFormData((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  };
+
+  const nextStep = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    }
+  };
+
+  const previousStep = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
+  };
+
+  const handleComplete = () => {
+    if (onComplete) {
+      onComplete();
+    }
+  };
 
   return (
-    <div className="dashboard-page">
-
+    <div className="onboarding-page">
       <style>{`
         * {
           box-sizing: border-box;
@@ -18,670 +49,783 @@ function Dashboard() {
           color: #292a31;
         }
 
-        .dashboard-page {
+        .onboarding-page {
           min-height: 100vh;
           background: #f6f4fc;
+          display: flex;
+          flex-direction: column;
         }
 
-        .dashboard-nav {
+        .onboarding-nav {
           height: 72px;
           background: white;
           border-bottom: 1px solid #e8e6ee;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 5%;
+          padding: 0 6%;
         }
 
-        .dashboard-brand {
+        .onboarding-brand {
           display: flex;
           align-items: center;
-          gap: 9px;
-          font-weight: 900;
+          gap: 10px;
           font-size: 19px;
+          font-weight: 900;
         }
 
-        .dashboard-brand-mark {
-          width: 31px;
-          height: 31px;
-          border-radius: 9px;
+        .brand-mark {
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
           background: #c8ff00;
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .user-area {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .user-avatar {
-          width: 35px;
-          height: 35px;
-          border-radius: 50%;
-          background: #292a31;
-          color: #c8ff00;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
           font-weight: 900;
-        }
-
-        .user-name {
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        .user-status {
-          color: #777;
-          font-size: 9px;
-          margin-top: 3px;
-        }
-
-        .dashboard-layout {
-          width: min(1200px, 92%);
-          margin: 30px auto;
-          display: grid;
-          grid-template-columns: 210px 1fr;
-          gap: 25px;
-        }
-
-        .sidebar {
-          background: white;
-          border-radius: 20px;
-          padding: 14px;
-          height: fit-content;
-          border: 1px solid #e9e7ef;
-        }
-
-        .sidebar-label {
-          color: #999;
-          font-size: 8px;
-          font-weight: 900;
-          text-transform: uppercase;
-          padding: 12px;
-        }
-
-        .side-button {
-          width: 100%;
-          border: none;
-          background: transparent;
-          padding: 12px;
-          border-radius: 11px;
-          text-align: left;
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-          color: #666;
-        }
-
-        .side-button.active {
-          background: #c8ff00;
           color: #292a31;
         }
 
-        .dashboard-content {
-          min-width: 0;
-        }
-
-        .welcome {
-          margin-bottom: 25px;
-        }
-
-        .welcome-label {
-          color: #777;
+        .step-counter {
           font-size: 10px;
           font-weight: 800;
-        }
-
-        .welcome h1 {
-          margin: 7px 0;
-          font-size: 35px;
-          letter-spacing: -1.5px;
-        }
-
-        .welcome p {
           color: #777;
-          font-size: 11px;
         }
 
-        .safety-overview {
-          background: #c8ff00;
-          border-radius: 25px;
-          padding: 30px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          min-height: 190px;
-        }
-
-        .safety-label {
-          font-size: 9px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .safety-value {
-          font-size: 48px;
-          font-weight: 900;
-          margin: 8px 0;
-          letter-spacing: -2px;
-        }
-
-        .safety-description {
-          font-size: 10px;
-          max-width: 400px;
-          color: #555;
-        }
-
-        .safety-score {
-          width: 130px;
-          height: 130px;
-          border-radius: 50%;
-          background: #292a31;
-          color: #c8ff00;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .safety-score strong {
-          font-size: 30px;
-        }
-
-        .safety-score span {
-          font-size: 8px;
-          color: white;
-        }
-
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
-          margin-top: 15px;
-        }
-
-        .dash-card {
-          background: white;
-          border-radius: 20px;
-          border: 1px solid #e9e7ef;
-          padding: 23px;
-        }
-
-        .card-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .card-tag {
-          font-size: 8px;
-          font-weight: 900;
-          color: #777;
-          text-transform: uppercase;
-        }
-
-        .card-symbol {
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background: #eeedf5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 900;
-        }
-
-        .dash-card h2 {
-          margin: 22px 0 3px;
-          font-size: 28px;
-        }
-
-        .dash-card small {
-          color: #777;
-          font-size: 9px;
-        }
-
-        .green-text {
-          color: #7b9200;
-          font-size: 9px;
-          font-weight: 900;
-          margin-top: 12px;
-        }
-
-        .cover-card {
-          background: #292a31;
-          color: white;
-        }
-
-        .cover-card .card-tag {
-          color: #aaa;
-        }
-
-        .cover-card .card-symbol {
-          background: #45464d;
-          color: #c8ff00;
-        }
-
-        .cover-card h2 {
-          color: #c8ff00;
-        }
-
-        .activity {
-          margin-top: 15px;
-          background: white;
-          border: 1px solid #e9e7ef;
-          border-radius: 20px;
-          padding: 23px;
-        }
-
-        .activity h3 {
-          margin: 0 0 18px;
-          font-size: 14px;
-        }
-
-        .transaction {
-          display: flex;
-          align-items: center;
-          padding: 13px 0;
-          border-top: 1px solid #eee;
-        }
-
-        .transaction:first-of-type {
-          border-top: none;
-        }
-
-        .transaction-icon {
-          width: 35px;
-          height: 35px;
-          border-radius: 50%;
-          background: #f0eff7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-right: 12px;
-        }
-
-        .transaction-info {
+        .onboarding-container {
+          width: min(700px, 92%);
+          margin: 55px auto;
           flex: 1;
         }
 
-        .transaction-info strong {
-          display: block;
-          font-size: 10px;
+        .progress-area {
+          margin-bottom: 35px;
         }
 
-        .transaction-info span {
+        .progress-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 9px;
+        }
+
+        .progress-label {
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+          color: #777;
+          letter-spacing: 0.5px;
+        }
+
+        .progress-number {
+          font-size: 9px;
+          font-weight: 900;
+          color: #292a31;
+        }
+
+        .progress-track {
+          width: 100%;
+          height: 6px;
+          background: #e5e3eb;
+          border-radius: 10px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: #c8ff00;
+          border-radius: 10px;
+          transition: width 0.3s ease;
+        }
+
+        .onboarding-card {
+          background: white;
+          border: 1px solid #e7e5ed;
+          border-radius: 28px;
+          padding: 42px;
+          box-shadow: 0 18px 50px rgba(41, 42, 49, 0.06);
+        }
+
+        .step-tag {
+          display: inline-flex;
+          background: #292a31;
+          color: #c8ff00;
+          padding: 7px 11px;
+          border-radius: 20px;
           font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+
+        .onboarding-card h1 {
+          margin: 0;
+          font-size: 38px;
+          line-height: 1.05;
+          letter-spacing: -1.7px;
+        }
+
+        .onboarding-card > p {
+          margin: 13px 0 30px;
+          color: #777;
+          font-size: 12px;
+          line-height: 1.7;
+          max-width: 500px;
+        }
+
+        .field {
+          margin-bottom: 20px;
+        }
+
+        .field label {
+          display: block;
+          font-size: 10px;
+          font-weight: 900;
+          margin-bottom: 8px;
+          text-transform: uppercase;
+          color: #555;
+        }
+
+        .field input,
+        .field select {
+          width: 100%;
+          height: 50px;
+          border: 1px solid #dddbe4;
+          border-radius: 13px;
+          padding: 0 15px;
+          font-size: 12px;
+          color: #292a31;
+          background: #faf9fc;
+          outline: none;
+        }
+
+        .field input:focus,
+        .field select:focus {
+          border-color: #c8ff00;
+          box-shadow: 0 0 0 3px rgba(200, 255, 0, 0.18);
+        }
+
+        .choice-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-top: 10px;
+        }
+
+        .choice-button {
+          border: 1px solid #dddbe4;
+          background: #faf9fc;
+          border-radius: 15px;
+          padding: 17px;
+          text-align: left;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .choice-button:hover {
+          border-color: #b8e900;
+        }
+
+        .choice-button.selected {
+          border-color: #292a31;
+          background: #c8ff00;
+        }
+
+        .choice-title {
+          display: block;
+          font-size: 11px;
+          font-weight: 900;
+          margin-bottom: 5px;
+        }
+
+        .choice-description {
+          display: block;
+          font-size: 9px;
+          color: #777;
+          line-height: 1.4;
+        }
+
+        .choice-button.selected .choice-description {
+          color: #454600;
+        }
+
+        .protection-box {
+          background: #292a31;
+          color: white;
+          border-radius: 20px;
+          padding: 22px;
+          margin-top: 8px;
+        }
+
+        .protection-box-title {
+          color: #c8ff00;
+          font-size: 11px;
+          font-weight: 900;
+          margin-bottom: 8px;
+        }
+
+        .protection-box p {
+          color: #bbb;
+          font-size: 9px;
+          line-height: 1.6;
+          margin: 0;
+        }
+
+        .button-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          margin-top: 32px;
+        }
+
+        .back-button,
+        .next-button {
+          min-height: 48px;
+          padding: 0 22px;
+          border-radius: 13px;
+          font-size: 11px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        .back-button {
+          background: white;
+          color: #292a31;
+          border: 1px solid #dddbe4;
+        }
+
+        .back-button:hover {
+          background: #f6f4fc;
+        }
+
+        .next-button {
+          margin-left: auto;
+          border: none;
+          background: #c8ff00;
+          color: #292a31;
+          box-shadow: 0 8px 20px rgba(200, 255, 0, 0.25);
+        }
+
+        .next-button:hover {
+          transform: translateY(-1px);
+        }
+
+        .trust-note {
+          text-align: center;
+          margin-top: 22px;
+          font-size: 9px;
           color: #999;
         }
 
-        .transaction-amount {
+        .summary {
+          background: #f6f4fc;
+          border-radius: 17px;
+          padding: 18px;
+          margin-top: 20px;
+        }
+
+        .summary-title {
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+          color: #777;
+          margin-bottom: 10px;
+        }
+
+        .summary-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 7px 0;
+          border-bottom: 1px solid #e7e5ed;
           font-size: 10px;
+        }
+
+        .summary-row:last-child {
+          border-bottom: none;
+        }
+
+        .summary-row span:first-child {
+          color: #888;
+        }
+
+        .summary-row span:last-child {
           font-weight: 900;
         }
 
-        .roundup {
-          color: #788c00;
-          font-size: 8px;
-          margin-left: 5px;
-        }
+        @media (max-width: 600px) {
+          .onboarding-nav {
+            padding: 0 5%;
+          }
 
-        @media(max-width:800px) {
-          .dashboard-layout {
+          .onboarding-container {
+            margin: 35px auto;
+          }
+
+          .onboarding-card {
+            padding: 25px;
+            border-radius: 22px;
+          }
+
+          .onboarding-card h1 {
+            font-size: 30px;
+          }
+
+          .choice-grid {
             grid-template-columns: 1fr;
           }
 
-          .sidebar {
-            display: flex;
-            overflow-x: auto;
+          .button-row {
+            flex-direction: column-reverse;
           }
 
-          .sidebar-label {
-            display: none;
-          }
-
-          .side-button {
-            min-width: 110px;
-          }
-        }
-
-        @media(max-width:600px) {
-          .dashboard-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .safety-overview {
-            padding: 23px;
-          }
-
-          .safety-score {
-            width: 90px;
-            height: 90px;
-          }
-
-          .safety-score strong {
-            font-size: 22px;
-          }
-
-          .safety-value {
-            font-size: 35px;
-          }
-
-          .user-name {
-            display: none;
+          .next-button,
+          .back-button {
+            width: 100%;
+            margin-left: 0;
           }
         }
       `}</style>
 
-      <nav className="dashboard-nav">
-
-        <div className="dashboard-brand">
-          <div className="dashboard-brand-mark">₹</div>
+      <nav className="onboarding-nav">
+        <div className="onboarding-brand">
+          <div className="brand-mark">₹</div>
           Rupee+
         </div>
 
-        <div className="user-area">
-          <div>
-            <div className="user-name">
-              Darshita
-            </div>
+        <div className="step-counter">
+          STEP {step} OF 3
+        </div>
+      </nav>
 
-            <div className="user-status">
-              Financial safety active
-            </div>
+      <main className="onboarding-container">
+
+        <div className="progress-area">
+          <div className="progress-top">
+            <span className="progress-label">
+              Build your financial safety profile
+            </span>
+
+            <span className="progress-number">
+              {Math.round((step / 3) * 100)}%
+            </span>
           </div>
 
-          <div className="user-avatar">
-            D
+          <div className="progress-track">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${(step / 3) * 100}%`,
+              }}
+            />
           </div>
         </div>
 
-      </nav>
+        <section className="onboarding-card">
 
-
-      <div className="dashboard-layout">
-
-        <aside className="sidebar">
-
-          <div className="sidebar-label">
-            Menu
-          </div>
-
-          <button
-            className={
-              active === "overview"
-                ? "side-button active"
-                : "side-button"
-            }
-            onClick={() => setActive("overview")}
-          >
-            ◉ Overview
-          </button>
-
-          <button
-            className={
-              active === "savings"
-                ? "side-button active"
-                : "side-button"
-            }
-            onClick={() => setActive("savings")}
-          >
-            ₹ Savings
-          </button>
-
-          <button
-            className={
-              active === "roundups"
-                ? "side-button active"
-                : "side-button"
-            }
-            onClick={() => setActive("roundups")}
-          >
-            ↻ Round-ups
-          </button>
-
-          <button
-            className={
-              active === "protection"
-                ? "side-button active"
-                : "side-button"
-            }
-            onClick={() => setActive("protection")}
-          >
-            ✓ Protection
-          </button>
-
-          <button
-            className={
-              active === "claims"
-                ? "side-button active"
-                : "side-button"
-            }
-            onClick={() => setActive("claims")}
-          >
-            + Claims
-          </button>
-
-        </aside>
-
-
-        <main className="dashboard-content">
-
-          <div className="welcome">
-
-            <div className="welcome-label">
-              YOUR FINANCIAL SAFETY
-            </div>
-
-            <h1>
-              Good afternoon, Darshita.
-            </h1>
-
-            <p>
-              Your money is working quietly in the background.
-            </p>
-
-          </div>
-
-
-          <section className="safety-overview">
-
-            <div>
-
-              <div className="safety-label">
-                Total financial safety
+          {step === 1 && (
+            <>
+              <div className="step-tag">
+                Step 01 · About you
               </div>
 
-              <div className="safety-value">
-                ₹2,480
+              <h1>
+                Let's start with you.
+              </h1>
+
+              <p>
+                Tell us your name so we can personalize your Rupee+
+                financial safety experience.
+              </p>
+
+              <div className="field">
+                <label htmlFor="name">
+                  Your name
+                </label>
+
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={formData.name}
+                  onChange={(event) =>
+                    updateForm("name", event.target.value)
+                  }
+                />
               </div>
 
-              <div className="safety-description">
-                ₹1,850 in savings + ₹630 allocated
-                towards your protection layer.
+              <div className="button-row">
+                <div />
+
+                <button
+                  className="next-button"
+                  onClick={nextStep}
+                  disabled={!formData.name.trim()}
+                  style={{
+                    opacity: formData.name.trim() ? 1 : 0.5,
+                  }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <div className="step-tag">
+                Step 02 · Your goals
               </div>
 
-            </div>
+              <h1>
+                Understand your money.
+              </h1>
 
-            <div className="safety-score">
+              <p>
+                A few simple details help Rupee+ understand what
+                financial safety means for you.
+              </p>
 
-              <strong>
-                86
-              </strong>
+              <div className="field">
+                <label htmlFor="income">
+                  Monthly income
+                </label>
 
-              <span>
-                SAFETY SCORE
-              </span>
+                <select
+                  id="income"
+                  value={formData.income}
+                  onChange={(event) =>
+                    updateForm("income", event.target.value)
+                  }
+                >
+                  <option value="">
+                    Select your income range
+                  </option>
 
-            </div>
+                  <option value="below-15000">
+                    Below ₹15,000
+                  </option>
 
-          </section>
+                  <option value="15000-30000">
+                    ₹15,000 – ₹30,000
+                  </option>
 
+                  <option value="30000-50000">
+                    ₹30,000 – ₹50,000
+                  </option>
 
-          <section className="dashboard-grid">
+                  <option value="50000-100000">
+                    ₹50,000 – ₹1,00,000
+                  </option>
 
-            <div className="dash-card">
+                  <option value="above-100000">
+                    Above ₹1,00,000
+                  </option>
+                </select>
+              </div>
 
-              <div className="card-top">
+              <div className="field">
+                <label>
+                  Your biggest financial goal
+                </label>
 
-                <span className="card-tag">
-                  Savings vault
-                </span>
+                <div className="choice-grid">
 
-                <div className="card-symbol">
-                  ₹
+                  <button
+                    type="button"
+                    className={
+                      formData.goal === "emergency"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("goal", "emergency")
+                    }
+                  >
+                    <span className="choice-title">
+                      Emergency savings
+                    </span>
+
+                    <span className="choice-description">
+                      Build a safety cushion for unexpected expenses.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.goal === "health"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("goal", "health")
+                    }
+                  >
+                    <span className="choice-title">
+                      Health protection
+                    </span>
+
+                    <span className="choice-description">
+                      Stay financially prepared for health emergencies.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.goal === "family"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("goal", "family")
+                    }
+                  >
+                    <span className="choice-title">
+                      Protect my family
+                    </span>
+
+                    <span className="choice-description">
+                      Create a stronger financial safety net.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.goal === "growth"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("goal", "growth")
+                    }
+                  >
+                    <span className="choice-title">
+                      Grow my savings
+                    </span>
+
+                    <span className="choice-description">
+                      Build better saving habits over time.
+                    </span>
+                  </button>
+
+                </div>
+              </div>
+
+              <div className="button-row">
+
+                <button
+                  className="back-button"
+                  onClick={previousStep}
+                >
+                  ← Back
+                </button>
+
+                <button
+                  className="next-button"
+                  onClick={nextStep}
+                  disabled={!formData.income || !formData.goal}
+                  style={{
+                    opacity:
+                      formData.income && formData.goal
+                        ? 1
+                        : 0.5,
+                  }}
+                >
+                  Continue →
+                </button>
+
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <div className="step-tag">
+                Step 03 · Protection
+              </div>
+
+              <h1>
+                Add your safety layer.
+              </h1>
+
+              <p>
+                Choose the level of financial protection you'd like
+                Rupee+ to help you understand.
+              </p>
+
+              <div className="field">
+                <label>
+                  Protection preference
+                </label>
+
+                <div className="choice-grid">
+
+                  <button
+                    type="button"
+                    className={
+                      formData.protection === "basic"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("protection", "basic")
+                    }
+                  >
+                    <span className="choice-title">
+                      Basic
+                    </span>
+
+                    <span className="choice-description">
+                      Essential protection for everyday emergencies.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.protection === "balanced"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("protection", "balanced")
+                    }
+                  >
+                    <span className="choice-title">
+                      Balanced
+                    </span>
+
+                    <span className="choice-description">
+                      A practical balance between protection and cost.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.protection === "strong"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("protection", "strong")
+                    }
+                  >
+                    <span className="choice-title">
+                      Strong
+                    </span>
+
+                    <span className="choice-description">
+                      More coverage for a stronger safety net.
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      formData.protection === "maximum"
+                        ? "choice-button selected"
+                        : "choice-button"
+                    }
+                    onClick={() =>
+                      updateForm("protection", "maximum")
+                    }
+                  >
+                    <span className="choice-title">
+                      Maximum
+                    </span>
+
+                    <span className="choice-description">
+                      Prioritize maximum financial protection.
+                    </span>
+                  </button>
+
+                </div>
+              </div>
+
+              <div className="protection-box">
+                <div className="protection-box-title">
+                  Your Rupee+ safety profile
+                </div>
+
+                <p>
+                  Your choices help us personalize the dashboard
+                  experience. This is a frontend demo and does not
+                  activate or purchase an insurance policy.
+                </p>
+              </div>
+
+              <div className="summary">
+
+                <div className="summary-title">
+                  Profile summary
+                </div>
+
+                <div className="summary-row">
+                  <span>Name</span>
+                  <span>{formData.name || "Not provided"}</span>
+                </div>
+
+                <div className="summary-row">
+                  <span>Income</span>
+                  <span>
+                    {formData.income
+                      ? formData.income.replaceAll("-", " ")
+                      : "Not selected"}
+                  </span>
+                </div>
+
+                <div className="summary-row">
+                  <span>Goal</span>
+                  <span>
+                    {formData.goal || "Not selected"}
+                  </span>
+                </div>
+
+                <div className="summary-row">
+                  <span>Protection</span>
+                  <span>
+                    {formData.protection || "Not selected"}
+                  </span>
                 </div>
 
               </div>
 
-              <h2>
-                ₹1,850
-              </h2>
+              <div className="button-row">
 
-              <small>
-                Available emergency balance
-              </small>
+                <button
+                  className="back-button"
+                  onClick={previousStep}
+                >
+                  ← Back
+                </button>
 
-              <div className="green-text">
-                ↗ +₹680 this month
-              </div>
-
-            </div>
-
-
-            <div className="dash-card cover-card">
-
-              <div className="card-top">
-
-                <span className="card-tag">
-                  Micro-cover
-                </span>
-
-                <div className="card-symbol">
-                  ✓
-                </div>
+                <button
+                  className="next-button"
+                  onClick={handleComplete}
+                  disabled={!formData.protection}
+                  style={{
+                    opacity: formData.protection ? 1 : 0.5,
+                  }}
+                >
+                  Enter Rupee+ →
+                </button>
 
               </div>
+            </>
+          )}
 
-              <h2>
-                ₹1,00,000
-              </h2>
+        </section>
 
-              <small>
-                Active protection coverage
-              </small>
+        <div className="trust-note">
+          Your information is used only to personalize this demo experience.
+        </div>
 
-              <div className="green-text">
-                ● COVER ACTIVE
-              </div>
-
-            </div>
-
-          </section>
-
-
-          <section className="activity">
-
-            <h3>
-              Recent activity
-            </h3>
-
-            <div className="transaction">
-
-              <div className="transaction-icon">
-                ☕
-              </div>
-
-              <div className="transaction-info">
-
-                <strong>
-                  Chai & Snacks
-                </strong>
-
-                <span>
-                  Today · UPI payment
-                </span>
-
-              </div>
-
-              <div className="transaction-amount">
-                ₹247
-                <span className="roundup">
-                  +₹3
-                </span>
-              </div>
-
-            </div>
-
-
-            <div className="transaction">
-
-              <div className="transaction-icon">
-                🛒
-              </div>
-
-              <div className="transaction-info">
-
-                <strong>
-                  Grocery Store
-                </strong>
-
-                <span>
-                  Yesterday · UPI payment
-                </span>
-
-              </div>
-
-              <div className="transaction-amount">
-                ₹684
-                <span className="roundup">
-                  +₹6
-                </span>
-              </div>
-
-            </div>
-
-
-            <div className="transaction">
-
-              <div className="transaction-icon">
-                🚇
-              </div>
-
-              <div className="transaction-info">
-
-                <strong>
-                  Metro Recharge
-                </strong>
-
-                <span>
-                  Yesterday · UPI payment
-                </span>
-
-              </div>
-
-              <div className="transaction-amount">
-                ₹196
-                <span className="roundup">
-                  +₹4
-                </span>
-              </div>
-
-            </div>
-
-          </section>
-
-        </main>
-
-      </div>
-
+      </main>
     </div>
   );
 }
 
-export default Dashboard;
+export default Onboarding;
