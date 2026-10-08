@@ -3,8 +3,8 @@
 import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
 
 
 FEATURE_NAMES = [
@@ -82,6 +82,16 @@ def generate_demo_dataset(samples: int = 1200, seed: int = 42):
     return X, risk
 
 
+def build_model():
+    return RandomForestRegressor(
+        n_estimators=250,
+        max_depth=10,
+        min_samples_leaf=3,
+        random_state=42,
+        n_jobs=-1,
+    )
+
+
 def train():
     X, y = generate_demo_dataset()
 
@@ -92,20 +102,31 @@ def train():
         random_state=42,
     )
 
-    model = RandomForestRegressor(
-        n_estimators=250,
-        max_depth=10,
-        min_samples_leaf=3,
-        random_state=42,
-        n_jobs=-1,
-    )
-
+    model = build_model()
     model.fit(X_train, y_train)
 
     predictions = model.predict(X_test)
 
     mae = mean_absolute_error(y_test, predictions)
+    rmse = np.sqrt(mean_squared_error(y_test, predictions))
     r2 = r2_score(y_test, predictions)
+
+    kfold = KFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=42,
+    )
+
+    cv_scores = cross_val_score(
+        build_model(),
+        X,
+        y,
+        cv=kfold,
+        scoring="neg_root_mean_squared_error",
+        n_jobs=-1,
+    )
+
+    cv_rmse = -cv_scores
 
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, MODEL_PATH)
@@ -114,7 +135,9 @@ def train():
     print(f"Training samples: {len(X_train)}")
     print(f"Test samples: {len(X_test)}")
     print(f"Mean Absolute Error: {mae:.2f}")
+    print(f"RMSE: {rmse:.2f}")
     print(f"R2 Score: {r2:.4f}")
+    print(f"5-Fold CV RMSE: {cv_rmse.mean():.2f} +/- {cv_rmse.std():.2f}")
     print(f"Model saved to: {MODEL_PATH}")
 
     print("\nFeature importance:")

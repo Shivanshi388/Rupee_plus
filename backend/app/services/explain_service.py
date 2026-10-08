@@ -10,7 +10,6 @@ class ExplainabilityService:
 
     def explain(self, data: PricingInput) -> dict:
         result = self.pricing_service.calculate(data)
-
         importances = self.pricing_service.ml_model.feature_importance()
 
         feature_labels = {
@@ -27,7 +26,9 @@ class ExplainabilityService:
         for name, importance in importances.items():
             value = result.factors[name]
 
-            if name == "income_stability":
+            if name == "monthly_income":
+                impact = "higher risk" if value < 20000 else "lower risk"
+            elif name == "income_stability":
                 impact = "higher risk" if value < 0.5 else "lower risk"
             elif name == "work_hours_per_day":
                 impact = "higher risk" if value > 9 else "lower risk"
@@ -38,7 +39,7 @@ class ExplainabilityService:
             elif name == "previous_claims":
                 impact = "higher risk" if value > 0 else "lower risk"
             else:
-                impact = "higher risk" if value < 20000 else "lower risk"
+                impact = "neutral"
 
             factors.append(
                 {
@@ -60,8 +61,26 @@ class ExplainabilityService:
             for factor in factors[:2]
         ]
 
+        higher_risk_factors = [
+            factor["factor"]
+            for factor in factors
+            if factor["impact"] == "higher risk"
+        ]
+
+        if higher_risk_factors:
+            personalized_reason = (
+                "Factors increasing your estimated risk include "
+                + ", ".join(higher_risk_factors[:3])
+                + "."
+            )
+        else:
+            personalized_reason = (
+                "Your current profile does not show major high-risk "
+                "signals across the evaluated factors."
+            )
+
         main_reason = (
-            "The main factors influencing your risk are "
+            "The main factors influencing the model prediction are "
             + " and ".join(highest_factors)
             + "."
         )
@@ -79,6 +98,7 @@ class ExplainabilityService:
                 f"Rs.{result.monthly_premium:.2f}."
             ),
             "summary": main_reason,
+            "personalized_reason": personalized_reason,
             "model": "Random Forest",
             "training_data": "Synthetic demo dataset",
         }
