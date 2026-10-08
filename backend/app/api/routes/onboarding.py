@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿from fastapi import APIRouter
 
 from backend.app.schemas.onboarding import (
     OnboardingRequest,
@@ -9,6 +9,10 @@ from backend.app.services.pricing_service import (
     PremiumPricingService,
 )
 from backend.app.services.profile_store import save_profile
+from backend.app.services.risk_mapping import (
+    map_city_risk,
+    map_occupation_risk,
+)
 
 
 router = APIRouter(
@@ -24,12 +28,15 @@ pricing_service = PremiumPricingService()
     response_model=OnboardingResponse,
 )
 def create_profile(request: OnboardingRequest):
+    city_risk = map_city_risk(request.city)
+    occupation_risk = map_occupation_risk(request.occupation)
+
     pricing_input = PricingInput(
         monthly_income=request.monthly_income,
         income_stability=request.income_stability,
         work_hours_per_day=request.work_hours_per_day,
-        city_risk=request.city_risk,
-        occupation_risk=request.occupation_risk,
+        city_risk=city_risk,
+        occupation_risk=occupation_risk,
         previous_claims=request.previous_claims,
     )
 
@@ -43,8 +50,8 @@ def create_profile(request: OnboardingRequest):
         "monthly_income": request.monthly_income,
         "income_stability": request.income_stability,
         "work_hours_per_day": request.work_hours_per_day,
-        "city_risk": request.city_risk,
-        "occupation_risk": request.occupation_risk,
+        "city_risk": city_risk,
+        "occupation_risk": occupation_risk,
         "previous_claims": request.previous_claims,
         "risk_score": result.risk_score,
         "risk_level": result.risk_level,

@@ -2,11 +2,13 @@
     PricingInput,
     PremiumPricingService,
 )
+from backend.app.services.recommendation_service import RecommendationService
 
 
 class ExplainabilityService:
     def __init__(self):
         self.pricing_service = PremiumPricingService()
+        self.recommendation_service = RecommendationService()
 
     def explain(self, data: PricingInput) -> dict:
         result = self.pricing_service.calculate(data)
@@ -85,6 +87,8 @@ class ExplainabilityService:
             + "."
         )
 
+        recommendations = self.recommendation_service.generate(result)
+
         return {
             "risk_score": result.risk_score,
             "risk_level": result.risk_level,
@@ -99,6 +103,7 @@ class ExplainabilityService:
             ),
             "summary": main_reason,
             "personalized_reason": personalized_reason,
+            "recommendations": recommendations,
             "model": "Random Forest",
             "training_data": "Synthetic demo dataset",
         }
