@@ -21,3 +21,9 @@ venv/
 
 # Archives
 *.zip
+
+# Node.js dependencies
+web/node_modules/
+
+# Node.js dependencies
+web/node_modules/
